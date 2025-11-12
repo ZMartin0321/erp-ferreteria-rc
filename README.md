@@ -304,17 +304,22 @@ Si ejecutaste el seed, puedes iniciar sesión con:## Documentación
 
 erp-ferreteria-rc/## 🚀 Despliegue en la Nube
 
-El proyecto está optimizado para desplegarse en **Railway**. Consulta la [Guía de Despliegue en Railway](RAILWAY-DEPLOY.md) para instrucciones paso a paso.
+El proyecto soporta múltiples plataformas de despliegue. **Recomendamos Supabase** para la mejor experiencia gratuita.
 
-### Resumen Rápido
+### 🏆 Opción Recomendada: Supabase TODO-EN-UNO
 
-1. Sube el código a GitHub
-2. Crea proyecto en [Railway](https://railway.app)
-3. Agrega servicio MySQL
-4. Configura variables de entorno
-5. Deploy automático desde GitHub
+**Ventajas:**
+- ✅ Base de datos PostgreSQL gratis (500MB)
+- ✅ Sin hibernación en la DB
+- ✅ Backend + Frontend en un solo lugar
+- ✅ 100% gratuito para proyectos pequeños
 
-**Costo estimado:** $0-10/mes con el plan gratuito
+**Costo:** $0/mes | **Guía completa:** [SUPABASE-DEPLOY.md](SUPABASE-DEPLOY.md)
+
+### Otras Opciones
+
+- **Railway**: PostgreSQL + Backend (~$5/mes) - [Ver guía](RAILWAY-DEPLOY.md)
+- **Render**: PostgreSQL + Backend gratis (con hibernación) - [Ver guía](RENDER-DEPLOY.md)
 
 ## Contribuir
 
@@ -368,8 +373,9 @@ npm run lint       # Linter
 
 ## 🌐 Guías de despliegue
 
-- [Railway](RAILWAY-DEPLOY.md)
-- [Render](RENDER-DEPLOY.md)
+- **[Supabase (TODO-EN-UNO) 🏆](SUPABASE-DEPLOY.md)** - Base de datos + Backend + Frontend (GRATIS, sin hibernación)
+- [Railway](RAILWAY-DEPLOY.md) - PostgreSQL + Backend (requiere pago)
+- [Render](RENDER-DEPLOY.md) - PostgreSQL + Backend (gratis con hibernación)
 
 ## 📸 Capturas de Pantalla
 
