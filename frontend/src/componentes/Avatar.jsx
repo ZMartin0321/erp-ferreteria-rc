@@ -11,6 +11,7 @@ const Avatar = ({
   status,
   border = false,
   className = "",
+  type = "user", // 'user' o 'product'
 }) => {
   const sizes = {
     xs: "w-6 h-6 text-xs",
@@ -83,6 +84,8 @@ const Avatar = ({
             alt={alt || name}
             className="w-full h-full object-cover"
           />
+        ) : type === "product" ? (
+          <span className="text-2xl">🔧</span>
         ) : (
           <span className="font-semibold text-white">{getInitials()}</span>
         )}

@@ -213,7 +213,9 @@ export default function Compras() {
   const markAsReceived = async (purchaseId) => {
     setProcessingId(purchaseId);
     try {
-      await api.post(`/purchases/${purchaseId}/receive`);
+      const response = await api.post(`/purchases/${purchaseId}/receive`);
+      console.log("Respuesta del servidor:", response.data);
+
       // Animación de éxito
       const successDiv = document.createElement("div");
       successDiv.innerHTML = `
@@ -228,8 +230,22 @@ export default function Compras() {
 
       loadPurchases();
     } catch (error) {
-      console.error("Error al marcar como recibida:", error);
-      alert("❌ Error al recibir compra");
+      console.error("Error completo:", error);
+      console.error("Error response:", error.response);
+      console.error("Respuesta del error:", error.response?.data);
+      console.error("Status:", error.response?.status);
+
+      const errorMessage =
+        error.response?.data?.message || error.message || "Error desconocido";
+
+      // Mensaje específico si la compra ya fue recibida
+      if (errorMessage.includes("ya fue recibida")) {
+        alert(
+          `ℹ️ ${errorMessage}\n\nEsta compra ya fue procesada anteriormente.`
+        );
+      } else {
+        alert(`❌ Error al recibir compra: ${errorMessage}`);
+      }
     } finally {
       setProcessingId(null);
     }
@@ -249,7 +265,9 @@ export default function Compras() {
   }
 
   const totalCompras = Array.isArray(purchases)
-    ? purchases.reduce((sum, p) => sum + parseFloat(p.total || 0), 0)
+    ? purchases
+        .filter((p) => p.paymentStatus === "paid")
+        .reduce((sum, p) => sum + parseFloat(p.total || 0), 0)
     : 0;
   const comprasRecibidas = Array.isArray(purchases)
     ? purchases.filter((p) => p.status === "received").length
@@ -491,18 +509,6 @@ export default function Compras() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              {/* Debug info */}
-              {process.env.NODE_ENV === "development" && (
-                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
-                  <strong>Debug:</strong> formData ={" "}
-                  {JSON.stringify({
-                    supplierId: formData.supplierId,
-                    status: formData.status,
-                    itemsCount: formData.items.length,
-                  })}
-                </div>
-              )}
-
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-gray-700 font-bold mb-2">
@@ -635,12 +641,13 @@ export default function Compras() {
                       );
                     })}
 
-                    <div className="border-t-2 border-green-200 pt-3 mt-3">
+                    <div className="border-t-2 border-green-200 pt-3 mt-3 space-y-2">
+                      {/* Subtotal */}
                       <div className="flex justify-between items-center">
-                        <span className="text-xl font-black text-gray-700">
-                          Total:
+                        <span className="text-lg font-semibold text-gray-600">
+                          Subtotal:
                         </span>
-                        <span className="text-3xl font-black text-red-600">
+                        <span className="text-xl font-bold text-gray-700">
                           $
                           {formData.items
                             .reduce(
@@ -648,6 +655,38 @@ export default function Compras() {
                               0
                             )
                             .toFixed(2)}
+                        </span>
+                      </div>
+
+                      {/* IVA 16% */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-semibold text-gray-600">
+                          IVA (16%):
+                        </span>
+                        <span className="text-xl font-bold text-gray-700">
+                          $
+                          {(
+                            formData.items.reduce(
+                              (sum, item) => sum + item.price * item.quantity,
+                              0
+                            ) * 0.16
+                          ).toFixed(2)}
+                        </span>
+                      </div>
+
+                      {/* Total con IVA */}
+                      <div className="flex justify-between items-center pt-2 border-t border-green-300">
+                        <span className="text-xl font-black text-gray-700">
+                          Total:
+                        </span>
+                        <span className="text-3xl font-black text-red-600">
+                          $
+                          {(
+                            formData.items.reduce(
+                              (sum, item) => sum + item.price * item.quantity,
+                              0
+                            ) * 1.16
+                          ).toFixed(2)}
                         </span>
                       </div>
                     </div>

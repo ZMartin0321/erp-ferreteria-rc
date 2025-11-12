@@ -1,13 +1,8 @@
-const {
-  Purchase,
-  PurchaseItem,
-  Product,
-  Supplier,
-  InventoryMovement,
-  User,
-} = require("../modelos");
+const db = require("../modelos");
+const { Purchase, PurchaseItem, Product, Supplier, InventoryMovement, User } =
+  db;
 const { Op } = require("sequelize");
-const { sequelize } = require("../configuracion/db");
+const sequelize = db.sequelize;
 
 /**
  * Genera número de compra único
@@ -294,9 +289,10 @@ const create = async (req, res, next) => {
  * Recibir compra (actualiza inventario)
  */
 const receive = async (req, res, next) => {
-  const transaction = await sequelize.transaction();
+  let transaction;
 
   try {
+    transaction = await sequelize.transaction();
     const { id } = req.params;
     const { receivedDate, notes } = req.body;
 
@@ -329,7 +325,13 @@ const receive = async (req, res, next) => {
       product.stock += item.quantity;
 
       // Actualizar costo del producto (opcional: usar costo promedio ponderado)
-      product.cost = item.unitCost;
+      // Solo actualizar si unitCost no es null
+      if (item.unitCost != null && item.unitCost > 0) {
+        product.cost = item.unitCost;
+      } else if (product.cost == null) {
+        // Si el producto no tiene costo, usar el precio de venta
+        product.cost = product.price || 0;
+      }
 
       await product.save({ transaction });
 
@@ -337,7 +339,7 @@ const receive = async (req, res, next) => {
       await InventoryMovement.create(
         {
           productId: item.productId,
-          movementType: "purchase",
+          type: "entry", // Entrada de inventario por compra
           quantity: item.quantity,
           previousStock,
           newStock: product.stock,
@@ -379,7 +381,10 @@ const receive = async (req, res, next) => {
       data: updatedPurchase,
     });
   } catch (err) {
-    await transaction.rollback();
+    if (transaction) {
+      await transaction.rollback();
+    }
+    console.error("Error en receive:", err);
     next(err);
   }
 };

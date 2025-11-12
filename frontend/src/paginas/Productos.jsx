@@ -15,6 +15,8 @@ export default function Productos() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -37,18 +39,20 @@ export default function Productos() {
     fetchCategories();
   }, []);
 
-  const fetchProducts = () => {
-    api
-      .get("/products")
-      .then((r) => {
-        // El backend devuelve { message, count, data }
-        setProducts(r.data.data || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setProducts([]);
-        setLoading(false);
-      });
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/products");
+      // El backend devuelve { message, count, data }
+      const productsList = response.data.data || [];
+      console.log(`📦 Productos cargados: ${productsList.length}`);
+      setProducts(productsList);
+    } catch (error) {
+      console.error("❌ Error al cargar productos:", error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchCategories = () => {
@@ -83,17 +87,22 @@ export default function Productos() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      let response;
       if (editingProduct) {
-        await api.put(`/products/${editingProduct.id}`, formData);
+        response = await api.put(`/products/${editingProduct.id}`, formData);
+        console.log("✅ Producto actualizado:", response.data);
         alert("✅ Producto actualizado exitosamente");
       } else {
-        await api.post("/products", formData);
+        response = await api.post("/products", formData);
+        console.log("✅ Producto creado:", response.data);
         alert("✅ Producto creado exitosamente");
       }
-      fetchProducts();
+
+      // Recargar productos y cerrar modal
+      await fetchProducts();
       closeModal();
     } catch (error) {
-      console.error("Error al guardar el producto:", error);
+      console.error("❌ Error al guardar el producto:", error);
       alert(
         "❌ Error al guardar el producto: " +
           (error.response?.data?.message || error.message)
@@ -164,6 +173,79 @@ export default function Productos() {
       stock: "",
       categoryId: "",
     });
+  };
+
+  const handleImageUpload = async (productId, file) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("imagen", file);
+
+    setUploadingImage(true);
+    try {
+      await api.post(`/products/${productId}/imagen`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      alert("✅ Imagen subida exitosamente");
+      fetchProducts();
+      setSelectedImage(null);
+    } catch (error) {
+      console.error("Error al subir imagen:", error);
+      alert(
+        "❌ Error al subir imagen: " +
+          (error.response?.data?.message || error.message)
+      );
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleDeleteImage = async (productId, imageUrl) => {
+    if (!window.confirm("¿Deseas eliminar esta imagen?")) return;
+
+    try {
+      await api.delete(`/products/${productId}/imagen`, {
+        data: { imageUrl },
+      });
+      alert("✅ Imagen eliminada exitosamente");
+      fetchProducts();
+    } catch (error) {
+      console.error("Error al eliminar imagen:", error);
+      alert(
+        "❌ Error al eliminar imagen: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+  };
+
+  const getProductImage = (product) => {
+    try {
+      // Parsear images si es string JSON
+      let images = product.images;
+      if (typeof images === "string") {
+        images = JSON.parse(images);
+      }
+
+      if (images && Array.isArray(images) && images.length > 0) {
+        const imagePath = images[0];
+
+        // Si es URL externa completa (http/https), devolverla directamente
+        if (imagePath.startsWith("http")) {
+          return imagePath;
+        }
+
+        // Construir URL completa para imágenes locales
+        const apiUrl =
+          import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+        const baseUrl = apiUrl.replace("/api", "");
+        return `${baseUrl}${imagePath}`;
+      }
+    } catch (error) {
+      console.error("Error al parsear images:", error);
+    }
+    return null;
   };
 
   const filteredProducts = Array.isArray(products)
@@ -282,9 +364,34 @@ export default function Productos() {
                   >
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg group-hover:scale-110 transition-transform">
-                          {p.name[0]}
-                        </div>
+                        {getProductImage(p) ? (
+                          <div className="w-16 h-16 rounded-xl shadow-lg overflow-hidden bg-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <img
+                              src={getProductImage(p)}
+                              alt={p.name}
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-white border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                            <svg
+                              className="w-6 h-6 text-gray-400 mb-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <span className="text-xs text-gray-400 font-medium">
+                              Sin foto
+                            </span>
+                          </div>
+                        )}
                         <div>
                           <div className="font-bold text-gray-800 text-lg group-hover:text-purple-600 transition-colors">
                             {p.name}
@@ -344,6 +451,23 @@ export default function Productos() {
                     </td>
                     <td className="px-6 py-5 text-center">
                       <div className="flex items-center justify-center gap-2">
+                        <label
+                          className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-110 transition-all cursor-pointer"
+                          title="Subir imagen"
+                        >
+                          📷
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files[0]) {
+                                handleImageUpload(p.id, e.target.files[0]);
+                                e.target.value = "";
+                              }
+                            }}
+                          />
+                        </label>
                         <button
                           onClick={() => openModal(p)}
                           className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-110 transition-all"

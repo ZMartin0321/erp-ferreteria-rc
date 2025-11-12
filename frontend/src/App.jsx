@@ -8,7 +8,6 @@ import Compras from "./paginas/Compras";
 import Proveedores from "./paginas/Proveedores";
 import Categorias from "./paginas/Categorias";
 import Clientes from "./paginas/Clientes";
-import Cotizaciones from "./paginas/Cotizaciones";
 import InicioSesion from "./paginas/InicioSesion";
 import Registro from "./paginas/Registro";
 import BarraNavegacion from "./componentes/BarraNavegacion";
@@ -88,16 +87,6 @@ export default function App() {
               <RutaProtegida>
                 <div className="container mx-auto p-4">
                   <Clientes />
-                </div>
-              </RutaProtegida>
-            }
-          />
-          <Route
-            path="/quotations"
-            element={
-              <RutaProtegida>
-                <div className="container mx-auto p-4">
-                  <Cotizaciones />
                 </div>
               </RutaProtegida>
             }

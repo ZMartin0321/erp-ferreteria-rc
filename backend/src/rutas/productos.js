@@ -7,6 +7,7 @@ const {
   validatePositiveNumber,
   validateIdParam,
 } = require("../intermediarios/middlewareValidacion");
+const upload = require("../intermediarios/subirArchivos");
 
 // Listar todos los productos
 router.get("/", verifyToken, controller.list);
@@ -37,5 +38,22 @@ router.put(
 
 // Eliminar producto
 router.delete("/:id", verifyToken, validateIdParam, controller.remove);
+
+// Subir imagen de producto
+router.post(
+  "/:id/imagen",
+  verifyToken,
+  validateIdParam,
+  upload.single("imagen"),
+  controller.subirImagen
+);
+
+// Eliminar imagen de producto
+router.delete(
+  "/:id/imagen",
+  verifyToken,
+  validateIdParam,
+  controller.eliminarImagen
+);
 
 module.exports = router;

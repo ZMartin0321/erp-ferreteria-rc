@@ -15,8 +15,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("individual", "business"),
         defaultValue: "individual",
       },
-      creditLimit: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
-      creditDays: { type: DataTypes.INTEGER, defaultValue: 0 },
       isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
       notes: { type: DataTypes.TEXT, allowNull: true },
     },

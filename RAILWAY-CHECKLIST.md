@@ -67,6 +67,7 @@ VITE_API_URL=https://[URL-DEL-BACKEND]/api
 ### 6️⃣ Inicializar Base de Datos (3 minutos)
 
 **Opción A: Desde Railway Query Editor**
+
 - [ ] Ir al servicio MySQL → "Data" → "Query"
 - [ ] Copiar y pegar contenido de `basedatos/init.sql`
 - [ ] Ejecutar
@@ -74,11 +75,13 @@ VITE_API_URL=https://[URL-DEL-BACKEND]/api
 - [ ] Ejecutar
 
 **Opción B: Desde MySQL Workbench**
+
 - [ ] Conectar con las credenciales de Railway
 - [ ] Ejecutar `basedatos/init.sql`
 - [ ] Ejecutar `basedatos/seed.sql`
 
 **Opción C: Script automático**
+
 - [ ] En Railway, ir al backend → "Settings" → "Deploy Trigger"
 - [ ] Ejecutar: `npm run init-db` (solo una vez)
 
@@ -104,36 +107,42 @@ VITE_API_URL=https://[URL-DEL-BACKEND]/api
 ## 🔧 Solución de Problemas
 
 ### ❌ Error: "Cannot connect to database"
+
 - Verifica que las variables `DB_*` usen el formato `${{MySQL.VARIABLE}}`
 - Reinicia el backend desde Railway
 
 ### ❌ Error: "CORS policy"
+
 - Verifica que `FRONTEND_URL` en el backend sea exactamente la URL del frontend
 - No debe terminar en `/`
 - Debe incluir `https://`
 
 ### ❌ Frontend muestra pantalla blanca
+
 - Verifica que `VITE_API_URL` apunte al backend correcto
 - Debe terminar en `/api`
 - Revisa los logs del frontend en Railway
 
 ### ❌ Error 404 en las rutas del frontend
+
 - Asegúrate de que el Start Command sea: `npx serve -s dist -p $PORT`
 - El flag `-s` es importante para SPA (Single Page Apps)
 
 ### ❌ Imágenes de productos no se guardan
+
 - Railway tiene sistema de archivos efímero
 - Considera migrar a Cloudinary o AWS S3
 
 ## 📊 Costos Estimados
 
-| Plan | Precio | Incluye |
-|------|--------|----------|
-| **Hobby** | Gratis | $5 crédito/mes, 1 servicio |
-| **Developer** | $5/servicio/mes | Ilimitado |
-| **Team** | $20/mes | 10 servicios, 20GB RAM |
+| Plan          | Precio          | Incluye                    |
+| ------------- | --------------- | -------------------------- |
+| **Hobby**     | Gratis          | $5 crédito/mes, 1 servicio |
+| **Developer** | $5/servicio/mes | Ilimitado                  |
+| **Team**      | $20/mes         | 10 servicios, 20GB RAM     |
 
 **Tu proyecto necesita:**
+
 - 1 servicio backend (~$5/mes)
 - 1 servicio frontend (~$5/mes)
 - 1 base de datos MySQL (incluida)
@@ -149,6 +158,7 @@ Una vez completados todos los pasos, tu ERP estará funcionando en:
 - **Base de Datos:** Gestionada por Railway
 
 ### URLs de Ejemplo:
+
 - Dashboard: `https://tu-frontend.up.railway.app/dashboard`
 - Login: `https://tu-frontend.up.railway.app/login`
 - API Health: `https://tu-backend.up.railway.app/api`

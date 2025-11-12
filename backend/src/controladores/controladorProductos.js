@@ -1,5 +1,7 @@
 const { Product, Category } = require("../modelos");
 const { Op } = require("sequelize");
+const path = require("path");
+const fs = require("fs");
 
 /**
  * Obtiene todos los productos con sus categorías
@@ -178,4 +180,117 @@ const getLowStock = async (req, res, next) => {
   }
 };
 
-module.exports = { list, getById, create, update, remove, getLowStock };
+/**
+ * Sube una imagen para un producto
+ * @route POST /api/products/:id/imagen
+ */
+const subirImagen = async (req, res, next) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+
+    if (!product) {
+      // Eliminar archivo subido si el producto no existe
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({
+        error: "Producto no encontrado",
+        message: `No existe un producto con el ID ${req.params.id}`,
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        error: "No se proporcionó ninguna imagen",
+        message: "Debe seleccionar un archivo de imagen",
+      });
+    }
+
+    // Construir URL de la imagen
+    const imageUrl = `/uploads/productos/${req.file.filename}`;
+
+    // Reemplazar todas las imágenes con la nueva (no agregar)
+    // Esto elimina URLs de ejemplo (Unsplash) y usa solo imágenes locales
+    const updatedImages = [imageUrl];
+
+    await product.update({ images: updatedImages });
+
+    const updated = await Product.findByPk(product.id, {
+      include: [{ model: Category, as: "category" }],
+    });
+
+    res.json({
+      message: "Imagen subida exitosamente",
+      data: updated,
+      imageUrl: imageUrl,
+    });
+  } catch (err) {
+    // Eliminar archivo si hubo error
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    next(err);
+  }
+};
+
+/**
+ * Elimina una imagen de un producto
+ * @route DELETE /api/products/:id/imagen
+ */
+const eliminarImagen = async (req, res, next) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        error: "Producto no encontrado",
+        message: `No existe un producto con el ID ${req.params.id}`,
+      });
+    }
+
+    const { imageUrl } = req.body;
+
+    if (!imageUrl) {
+      return res.status(400).json({
+        error: "URL de imagen no proporcionada",
+        message: "Debe especificar la URL de la imagen a eliminar",
+      });
+    }
+
+    // Eliminar imagen del array
+    const currentImages = product.images || [];
+    const updatedImages = currentImages.filter((img) => img !== imageUrl);
+
+    // Eliminar archivo físico
+    const filename = path.basename(imageUrl);
+    const filePath = path.join(__dirname, "../../uploads/productos", filename);
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await product.update({ images: updatedImages });
+
+    const updated = await Product.findByPk(product.id, {
+      include: [{ model: Category, as: "category" }],
+    });
+
+    res.json({
+      message: "Imagen eliminada exitosamente",
+      data: updated,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  list,
+  getById,
+  create,
+  update,
+  remove,
+  getLowStock,
+  subirImagen,
+  eliminarImagen,
+};

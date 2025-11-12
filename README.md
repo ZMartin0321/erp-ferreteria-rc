@@ -366,6 +366,11 @@ npm run preview    # Preview del build
 npm run lint       # Linter
 ```
 
+## 🌐 Guías de despliegue
+
+- [Railway](RAILWAY-DEPLOY.md)
+- [Render](RENDER-DEPLOY.md)
+
 ## 📸 Capturas de Pantalla
 
 ### Panel de Control

@@ -8,7 +8,6 @@ const suppliersRoutes = require("./proveedores");
 const customersRoutes = require("./clientes");
 const purchasesRoutes = require("./compras");
 const salesRoutes = require("./ventas");
-const quotationsRoutes = require("./cotizaciones");
 const reportsRoutes = require("./reportes");
 
 router.use("/auth", authRoutes);
@@ -18,7 +17,6 @@ router.use("/suppliers", suppliersRoutes);
 router.use("/customers", customersRoutes);
 router.use("/purchases", purchasesRoutes);
 router.use("/sales", salesRoutes);
-router.use("/quotations", quotationsRoutes);
 router.use("/reports", reportsRoutes);
 
 router.get("/", (req, res) =>
@@ -33,7 +31,6 @@ router.get("/", (req, res) =>
       customers: "/api/customers",
       purchases: "/api/purchases",
       sales: "/api/sales",
-      quotations: "/api/quotations",
       reports: "/api/reports",
     },
   })

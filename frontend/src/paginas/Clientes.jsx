@@ -19,8 +19,6 @@ export default function Clientes() {
     city: "",
     state: "",
     customerType: "individual",
-    creditLimit: "",
-    creditDays: "",
   });
 
   useEffect(() => {
@@ -79,8 +77,6 @@ export default function Clientes() {
         city: customer.city || "",
         state: customer.state || "",
         customerType: customer.customerType || "individual",
-        creditLimit: customer.creditLimit || "",
-        creditDays: customer.creditDays || "",
       });
     } else {
       setEditingCustomer(null);
@@ -92,8 +88,6 @@ export default function Clientes() {
         city: "",
         state: "",
         customerType: "individual",
-        creditLimit: "",
-        creditDays: "",
       });
     }
     setShowModal(true);
@@ -124,9 +118,6 @@ export default function Clientes() {
       : 0,
     individual: Array.isArray(customers)
       ? customers.filter((c) => c.customerType === "individual").length
-      : 0,
-    totalCredit: Array.isArray(customers)
-      ? customers.reduce((sum, c) => sum + (parseFloat(c.creditLimit) || 0), 0)
       : 0,
   };
 
@@ -249,34 +240,6 @@ export default function Clientes() {
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-amber-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Crédito Total
-                </p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">
-                  ${stats.totalCredit.toLocaleString("es-MX")}
-                </p>
-              </div>
-              <div className="bg-amber-100 p-3 rounded-lg">
-                <svg
-                  className="w-8 h-8 text-amber-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
                   />
                 </svg>
               </div>
@@ -465,28 +428,6 @@ export default function Clientes() {
                       </div>
                     )}
                   </div>
-
-                  {/* Credit Info */}
-                  {customer.creditLimit > 0 && (
-                    <div className="pt-4 border-t border-gray-200">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-600">
-                          Crédito
-                        </span>
-                        <span className="text-sm font-bold text-green-600">
-                          $
-                          {parseFloat(customer.creditLimit).toLocaleString(
-                            "es-MX"
-                          )}
-                        </span>
-                      </div>
-                      {customer.creditDays > 0 && (
-                        <p className="text-xs text-gray-500">
-                          {customer.creditDays} días de plazo
-                        </p>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
@@ -606,35 +547,6 @@ export default function Clientes() {
                     <option value="individual">Individual</option>
                     <option value="business">Empresa</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Límite de Crédito
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.creditLimit}
-                    onChange={(e) =>
-                      setFormData({ ...formData, creditLimit: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Días de Crédito
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.creditDays}
-                    onChange={(e) =>
-                      setFormData({ ...formData, creditDays: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
                 </div>
               </div>
 

@@ -197,22 +197,22 @@ export const branding = {
 
   // Estados de productos con colores
   productStatus: {
-    active: {
+    activo: {
       label: "Activo",
       color: theme.colors.success[500],
       bg: theme.colors.success[50],
     },
-    inactive: {
+    inactivo: {
       label: "Inactivo",
       color: theme.colors.neutral[500],
       bg: theme.colors.neutral[100],
     },
-    lowStock: {
+    stockBajo: {
       label: "Stock Bajo",
       color: theme.colors.warning[500],
       bg: theme.colors.warning[50],
     },
-    outOfStock: {
+    sinStock: {
       label: "Agotado",
       color: theme.colors.danger[500],
       bg: theme.colors.danger[50],
@@ -221,22 +221,22 @@ export const branding = {
 
   // Estados de órdenes
   orderStatus: {
-    pending: {
+    pendiente: {
       label: "Pendiente",
       color: theme.colors.warning[500],
       icon: "⏳",
     },
-    paid: {
+    pagado: {
       label: "Pagado",
       color: theme.colors.success[500],
       icon: "✅",
     },
-    partial: {
+    parcial: {
       label: "Pago Parcial",
       color: theme.colors.info[500],
       icon: "📊",
     },
-    overdue: {
+    vencido: {
       label: "Vencido",
       color: theme.colors.danger[500],
       icon: "⚠️",
@@ -245,22 +245,22 @@ export const branding = {
 
   // Métodos de pago con iconos
   paymentMethods: {
-    cash: {
+    efectivo: {
       label: "Efectivo",
       icon: "💵",
       color: theme.colors.success[500],
     },
-    card: {
+    tarjeta: {
       label: "Tarjeta",
       icon: "💳",
       color: theme.colors.primary[500],
     },
-    transfer: {
+    transferencia: {
       label: "Transferencia",
       icon: "🏦",
       color: theme.colors.info[500],
     },
-    check: {
+    cheque: {
       label: "Cheque",
       icon: "📝",
       color: theme.colors.accent[500],

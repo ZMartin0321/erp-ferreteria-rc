@@ -20,7 +20,7 @@ const generateSaleNumber = async () => {
 
   const lastSale = await Sale.findOne({
     where: {
-      saleNumber: {
+      invoiceNumber: {
         [Op.like]: `${prefix}%`,
       },
     },
@@ -28,8 +28,8 @@ const generateSaleNumber = async () => {
   });
 
   let nextNumber = 1;
-  if (lastSale && lastSale.saleNumber) {
-    const lastNumber = parseInt(lastSale.saleNumber.split("-")[2]);
+  if (lastSale && lastSale.invoiceNumber) {
+    const lastNumber = parseInt(lastSale.invoiceNumber.split("-")[2]);
     nextNumber = lastNumber + 1;
   }
 
@@ -59,7 +59,7 @@ const list = async (req, res, next) => {
     // Filtros
     if (search) {
       where[Op.or] = [
-        { saleNumber: { [Op.like]: `%${search}%` } },
+        { invoiceNumber: { [Op.like]: `%${search}%` } },
         { clientName: { [Op.like]: `%${search}%` } },
       ];
     }
@@ -238,12 +238,12 @@ const create = async (req, res, next) => {
     const total = subtotal - globalDiscount + tax;
 
     // Generar número de venta
-    const saleNumber = await generateSaleNumber();
+    const invoiceNumber = await generateSaleNumber();
 
     // Crear venta
     const sale = await Sale.create(
       {
-        saleNumber,
+        invoiceNumber,
         customerId: customerId || null,
         clientName: clientName || "Público General",
         userId: req.user.id,
@@ -279,14 +279,14 @@ const create = async (req, res, next) => {
       await InventoryMovement.create(
         {
           productId: itemData.productId,
-          movementType: "sale",
+          type: "exit", // Salida de inventario por venta
           quantity: -itemData.quantity,
           previousStock: product.stock + itemData.quantity,
           newStock: product.stock,
           referenceType: "sale",
           referenceId: sale.id,
           userId: req.user.id,
-          notes: `Venta ${saleNumber}`,
+          notes: `Venta ${invoiceNumber}`,
         },
         { transaction }
       );
@@ -343,19 +343,10 @@ const update = async (req, res, next) => {
       });
     }
 
-    // Solo permitir cambios si no está pagada
-    if (sale.paymentStatus === "paid" && paymentStatus !== "paid") {
-      await transaction.rollback();
-      return res.status(400).json({
-        success: false,
-        message: "No se puede modificar una venta ya pagada",
-      });
-    }
-
     // Actualizar campos permitidos
     if (paymentStatus) sale.paymentStatus = paymentStatus;
     if (paymentMethod) sale.paymentMethod = paymentMethod;
-    if (notes) sale.notes = notes;
+    if (notes !== undefined) sale.notes = notes;
 
     await sale.save({ transaction });
     await transaction.commit();
@@ -418,14 +409,14 @@ const remove = async (req, res, next) => {
       await InventoryMovement.create(
         {
           productId: item.productId,
-          movementType: "adjustment",
+          type: "adjustment", // Ajuste de inventario por cancelación
           quantity: item.quantity,
           previousStock: product.stock - item.quantity,
           newStock: product.stock,
           referenceType: "sale_cancellation",
           referenceId: sale.id,
           userId: req.user.id,
-          notes: `Cancelación de venta ${sale.saleNumber}`,
+          notes: `Cancelación de venta ${sale.invoiceNumber}`,
         },
         { transaction }
       );

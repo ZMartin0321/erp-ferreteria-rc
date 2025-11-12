@@ -4,7 +4,7 @@ import { branding } from "../configuracion/branding";
 /**
  * Componente de tarjeta de producto profesional con imagen
  */
-const ProductCard = ({
+const TarjetaProducto = ({
   product,
   onEdit,
   onDelete,
@@ -14,22 +14,57 @@ const ProductCard = ({
   const [imageError, setImageError] = useState(false);
 
   const getStockStatus = () => {
-    if (product.stock === 0) return "outOfStock";
-    if (product.stock <= product.minStock) return "lowStock";
-    return "active";
+    if (product.stock === 0) return "sinStock";
+    if (product.stock <= product.minStock) return "stockBajo";
+    return "activo";
   };
 
   const stockStatus = getStockStatus();
-  const statusConfig = branding.productStatus[stockStatus];
+  const statusConfig =
+    branding.productStatus[stockStatus] || branding.productStatus.activo;
 
   const handleImageError = () => {
     setImageError(true);
   };
 
-  const imageUrl =
-    !imageError && product.images && product.images.length > 0
-      ? product.images[0]
-      : "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&h=300&fit=crop";
+  // Construir URL completa de la imagen
+  const getImageUrl = () => {
+    try {
+      // Parsear images si es string JSON
+      let images = product.images;
+      if (typeof images === "string") {
+        images = JSON.parse(images);
+      }
+
+      if (
+        imageError ||
+        !images ||
+        !Array.isArray(images) ||
+        images.length === 0
+      ) {
+        return null; // Sin imagen, mostrar placeholder
+      }
+
+      const imagePath = images[0];
+
+      // Si es URL externa completa (http/https), devolverla directamente
+      if (imagePath.startsWith("http")) {
+        return imagePath;
+      }
+
+      // Construir URL completa - quitamos /api porque uploads está en la raíz
+      const apiUrl =
+        import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+      const baseUrl = apiUrl.replace("/api", "");
+
+      return `${baseUrl}${imagePath}`;
+    } catch (error) {
+      console.error("Error al parsear images en TarjetaProducto:", error);
+      return null;
+    }
+  };
+
+  const imageUrl = getImageUrl();
 
   return (
     <div
@@ -37,13 +72,34 @@ const ProductCard = ({
       onClick={onClick}
     >
       {/* Imagen del producto */}
-      <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={product.name}
-          onError={handleImageError}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-        />
+      <div className="relative h-48 bg-white overflow-hidden flex items-center justify-center">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={product.name}
+            onError={handleImageError}
+            className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-white">
+            <svg
+              className="w-20 h-20 text-gray-300 mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <p className="text-sm text-gray-400 font-medium">
+              Haz clic para subir foto
+            </p>
+          </div>
+        )}
 
         {/* Badge de stock */}
         <div
@@ -53,9 +109,9 @@ const ProductCard = ({
             color: statusConfig.color,
           }}
         >
-          {stockStatus === "outOfStock" && "🚫 Agotado"}
-          {stockStatus === "lowStock" && "⚠️ Stock Bajo"}
-          {stockStatus === "active" && `✅ ${product.stock} disponibles`}
+          {stockStatus === "sinStock" && "🚫 Agotado"}
+          {stockStatus === "stockBajo" && "⚠️ Stock Bajo"}
+          {stockStatus === "activo" && `✅ ${product.stock} disponibles`}
         </div>
 
         {/* SKU Badge */}
@@ -195,4 +251,4 @@ const ProductCard = ({
   );
 };
 
-export default ProductCard;
+export default TarjetaProducto;

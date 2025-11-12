@@ -84,8 +84,6 @@ CREATE TABLE IF NOT EXISTS `customers` (
   `state` VARCHAR(100),
   `postalCode` VARCHAR(10),
   `customerType` ENUM('individual','business') DEFAULT 'individual',
-  `creditLimit` DECIMAL(10,2) DEFAULT 0,
-  `creditDays` INT DEFAULT 0,
   `isActive` BOOLEAN DEFAULT TRUE,
   `notes` TEXT,
   `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -29,7 +29,8 @@
     "mysql2": "^3.2.0",
     "pdfkit": "^0.17.2",
     "recharts": "^3.3.0",
-    "sequelize": "^6.32.1"
+    "sequelize": "^6.32.1",
+    "svg-to-pdfkit": "^0.1.8"
   },
   "devDependencies": {
     "eslint": "^8.50.0",

@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { register, login } = require("../controladores/controladorAutenticacion");
+const {
+  register,
+  login,
+} = require("../controladores/controladorAutenticacion");
 const {
   validateRequired,
   validateEmail,

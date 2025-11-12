@@ -8,9 +8,10 @@ export default function Ventas() {
   const [showModal, setShowModal] = useState(false);
   const [editingSale, setEditingSale] = useState(null);
   const [products, setProducts] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [formData, setFormData] = useState({
     clientName: "",
-    status: "draft",
+    status: "pending",
     items: [],
   });
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -19,6 +20,7 @@ export default function Ventas() {
   useEffect(() => {
     loadSales();
     loadProducts();
+    loadCustomers();
   }, []);
 
   const loadSales = async () => {
@@ -45,6 +47,16 @@ export default function Ventas() {
     }
   };
 
+  const loadCustomers = async () => {
+    try {
+      const response = await api.get("/customers");
+      setCustomers(response.data.data || []);
+    } catch (error) {
+      console.error("Error al cargar clientes:", error);
+      setCustomers([]);
+    }
+  };
+
   const openModal = (sale = null) => {
     console.log("📝 abrirModal llamado con:", sale);
     if (sale) {
@@ -60,7 +72,9 @@ export default function Ventas() {
 
       const newFormData = {
         clientName: sale.clientName || "",
-        status: sale.status || "draft",
+        status: sale.paymentStatus || sale.status || "draft", // Usar paymentStatus del backend
+        paymentMethod: sale.paymentMethod || "cash",
+        notes: sale.notes || "",
         items: transformedItems,
       };
 
@@ -73,7 +87,9 @@ export default function Ventas() {
       setEditingSale(null);
       const newFormData = {
         clientName: "",
-        status: "draft",
+        status: "pending",
+        paymentMethod: "cash",
+        notes: "",
         items: [],
       };
       console.log(
@@ -90,7 +106,7 @@ export default function Ventas() {
     setEditingSale(null);
     setFormData({
       clientName: "",
-      status: "draft",
+      status: "pending",
       items: [],
     });
     setSelectedProduct("");
@@ -151,22 +167,27 @@ export default function Ventas() {
     }
 
     try {
-      // Transformar items para que coincidan con el backend
-      const payload = {
-        clientName: formData.clientName,
-        status: formData.status,
-        items: formData.items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: item.price || item.unitPrice,
-          discount: 0,
-          tax: 0,
-        })),
-      };
-
       if (editingSale) {
+        // Al editar, solo enviamos los campos permitidos por el backend
+        const payload = {
+          paymentStatus: formData.status, // El backend espera 'paymentStatus'
+          paymentMethod: formData.paymentMethod || "cash",
+          notes: formData.notes || "",
+        };
         await api.put(`/sales/${editingSale.id}`, payload);
       } else {
+        // Al crear, enviamos todos los datos
+        const payload = {
+          clientName: formData.clientName,
+          status: formData.status,
+          items: formData.items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.price || item.unitPrice,
+            discount: 0,
+            tax: 0,
+          })),
+        };
         await api.post("/sales", payload);
       }
       loadSales();
@@ -231,11 +252,17 @@ export default function Ventas() {
     );
   }
 
+  // Solo contar ventas PAGADAS en el total de ingresos
   const totalVentas = Array.isArray(sales)
-    ? sales.reduce((sum, sale) => sum + parseFloat(sale.total || 0), 0)
+    ? sales
+        .filter((s) => s.paymentStatus === "paid")
+        .reduce((sum, sale) => sum + parseFloat(sale.total || 0), 0)
     : 0;
   const ventasPagadas = Array.isArray(sales)
-    ? sales.filter((s) => s.status === "paid").length
+    ? sales.filter((s) => s.paymentStatus === "paid").length
+    : 0;
+  const ventasPendientes = Array.isArray(sales)
+    ? sales.filter((s) => s.paymentStatus === "pending").length
     : 0;
 
   return (
@@ -255,7 +282,7 @@ export default function Ventas() {
           </div>
 
           {/* KPIs de ventas */}
-          <div className="grid grid-cols-3 gap-4 mt-6">
+          <div className="grid grid-cols-4 gap-4 mt-6">
             <div className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30">
               <div className="text-sm text-purple-100">Total Ventas</div>
               <div className="text-4xl font-black">{sales.length}</div>
@@ -263,6 +290,10 @@ export default function Ventas() {
             <div className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30">
               <div className="text-sm text-purple-100">Pagadas</div>
               <div className="text-4xl font-black">{ventasPagadas}</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30">
+              <div className="text-sm text-purple-100">Pendientes</div>
+              <div className="text-4xl font-black">{ventasPendientes}</div>
             </div>
             <div className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30">
               <div className="text-sm text-purple-100">Ingresos Total</div>
@@ -355,27 +386,29 @@ export default function Ventas() {
                     <td className="px-6 py-5 text-center">
                       <span
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
-                          sale.status === "paid"
+                          sale.paymentStatus === "paid"
                             ? "bg-green-100 text-green-700"
-                            : sale.status === "draft"
+                            : sale.paymentStatus === "draft"
                               ? "bg-yellow-100 text-yellow-700"
                               : "bg-red-100 text-red-700"
                         }`}
                       >
                         <span
                           className={`w-2 h-2 rounded-full animate-pulse ${
-                            sale.status === "paid"
+                            sale.paymentStatus === "paid"
                               ? "bg-green-500"
-                              : sale.status === "draft"
+                              : sale.paymentStatus === "draft"
                                 ? "bg-yellow-500"
                                 : "bg-red-500"
                           }`}
                         ></span>
-                        {sale.status === "paid"
+                        {sale.paymentStatus === "paid"
                           ? "Pagada"
-                          : sale.status === "draft"
+                          : sale.paymentStatus === "draft"
                             ? "Borrador"
-                            : sale.status}
+                            : sale.paymentStatus === "pending"
+                              ? "Pendiente"
+                              : sale.paymentStatus}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-center">
@@ -449,53 +482,84 @@ export default function Ventas() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              {/* Debug info */}
-              {process.env.NODE_ENV === "development" && (
-                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-xs">
-                  <strong>Debug:</strong> formData ={" "}
-                  {JSON.stringify({
-                    clientName: formData.clientName,
-                    status: formData.status,
-                    itemsCount: formData.items.length,
-                  })}
-                </div>
-              )}
-
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-gray-700 font-bold mb-2">
                     Nombre del Cliente *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.clientName || ""}
                     onChange={(e) =>
                       setFormData({ ...formData, clientName: e.target.value })
                     }
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 focus:ring-4 focus:ring-purple-100 transition-all"
-                    placeholder="Ej: Juan Pérez"
                     required
-                  />
+                  >
+                    <option value="">Seleccionar cliente...</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.name}>
+                        {customer.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-gray-700 font-bold mb-2">
-                    Estado *
+                    Estado de Pago *
                   </label>
                   <select
-                    value={formData.status || "draft"}
+                    value={formData.status || "pending"}
                     onChange={(e) =>
                       setFormData({ ...formData, status: e.target.value })
                     }
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 focus:ring-4 focus:ring-purple-100 transition-all"
                     required
                   >
-                    <option value="draft">Borrador</option>
-                    <option value="paid">Pagada</option>
                     <option value="pending">Pendiente</option>
+                    <option value="paid">Pagada</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Método de Pago *
+                  </label>
+                  <select
+                    value={formData.paymentMethod || "cash"}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        paymentMethod: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 focus:ring-4 focus:ring-purple-100 transition-all"
+                    required
+                  >
+                    <option value="cash">Efectivo</option>
+                    <option value="card">Tarjeta</option>
+                    <option value="transfer">Transferencia</option>
                   </select>
                 </div>
               </div>
+
+              {/* Campo de Notas */}
+              {editingSale && (
+                <div>
+                  <label className="block text-gray-700 font-bold mb-2">
+                    Notas
+                  </label>
+                  <textarea
+                    value={formData.notes || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, notes: e.target.value })
+                    }
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-600 focus:ring-4 focus:ring-purple-100 transition-all"
+                    rows="3"
+                    placeholder="Notas adicionales sobre la venta..."
+                  />
+                </div>
+              )}
 
               {/* Sección de productos */}
               <div className="border-2 border-purple-200 rounded-2xl p-6 bg-purple-50">

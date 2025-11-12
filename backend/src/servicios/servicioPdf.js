@@ -1,5 +1,56 @@
+const fs = require("fs");
+const path = require("path");
+const SVGtoPDF = require("svg-to-pdfkit");
 const PDFDocument = require("pdfkit");
 const { Sale, SaleItem, Product } = require("../modelos");
+
+const logoSvgPath = path.join(__dirname, "../assets/ferreteria-logo.svg");
+let svgLogoContent = null;
+
+try {
+  svgLogoContent = fs.readFileSync(logoSvgPath, "utf8");
+} catch (error) {
+  console.warn("No se pudo cargar el logo SVG para PDFs:", error.message);
+}
+
+/**
+ * Dibuja el isotipo circular usado en el dashboard (martillo + R con degradado).
+ */
+const drawFerreteriaLogo = (doc, centerX, centerY, radius = 35) => {
+  if (svgLogoContent) {
+    doc.save();
+    const size = radius * 2;
+    SVGtoPDF(doc, svgLogoContent, centerX - radius, centerY - radius, {
+      width: size,
+      height: size,
+      assumePt: true,
+    });
+    doc.restore();
+    return;
+  }
+
+  // Fallback simple en caso de que el SVG no esté disponible
+  doc.save();
+  const gradient = doc.linearGradient(
+    centerX - radius,
+    centerY - radius,
+    centerX + radius,
+    centerY + radius
+  );
+  gradient.stop(0, "#1e40af");
+  gradient.stop(0.55, "#2563eb");
+  gradient.stop(1, "#60a5fa");
+  doc.circle(centerX, centerY, radius).fill(gradient);
+
+  doc.strokeColor("#ffffff");
+  doc.lineWidth(radius * 0.12);
+  doc.moveTo(centerX - radius * 0.4, centerY - radius * 0.1);
+  doc.lineTo(centerX - radius * 0.4, centerY + radius * 0.45);
+  doc.moveTo(centerX - radius * 0.5, centerY - radius * 0.4);
+  doc.lineTo(centerX + radius * 0.1, centerY - radius * 0.4);
+  doc.stroke();
+  doc.restore();
+};
 
 /**
  * Genera un PDF de factura para una venta
@@ -53,33 +104,27 @@ const generateInvoicePDF = async (saleId, res) => {
     doc.pipe(res);
 
     // === HEADER CON LOGO ===
-    const headerY = 50;
+    const headerY = 45;
+    const logoRadius = 26;
+    const logoCenterX = 92;
+    const logoCenterY = headerY + logoRadius;
+    drawFerreteriaLogo(doc, logoCenterX, logoCenterY, logoRadius);
 
-    // Logo circular azul con las letras "RC"
-    // Círculo azul de fondo
-    doc
-      .fillColor("#3b82f6")
-      .circle(110, headerY + 40, 35)
-      .fill();
+    // Nombre de la empresa junto al logo (alineado verticalmente)
+    const textBlockX = logoCenterX + logoRadius + 64;
+    const textBlockY = headerY + 32;
 
-    // Letras "RC" en blanco
-    doc.fillColor("#ffffff");
     doc
-      .fontSize(28)
+      .fillColor("#1d4ed8")
       .font("Helvetica-Bold")
-      .text("RC", 93, headerY + 26);
+      .fontSize(27)
+      .text("Ferretería RC", textBlockX, textBlockY, { lineGap: 4 });
 
-    // Nombre de la empresa junto al logo
-    doc.fillColor("#1e40af");
     doc
-      .fontSize(24)
-      .font("Helvetica-Bold")
-      .text("Ferretería RC", 160, headerY + 20);
-    doc.fillColor("#6b7280");
-    doc
-      .fontSize(10)
+      .fillColor("#64748b")
       .font("Helvetica")
-      .text("Sistema de Gestión Empresarial", 160, headerY + 48);
+      .fontSize(11)
+      .text("Sistema de Gestión Empresarial", textBlockX, textBlockY + 28);
 
     // Información de la factura en la derecha
     doc.fillColor("#000000");
@@ -115,21 +160,56 @@ const generateInvoicePDF = async (saleId, res) => {
       .font("Helvetica")
       .text(sale.clientName || "Cliente General", 60, clientY + 28);
 
-    // Estado de pago
-    const statusText =
-      sale.status === "paid"
-        ? "✓ PAGADA"
-        : sale.status === "draft"
-        ? "○ BORRADOR"
-        : "⏱ PENDIENTE";
-    const statusColor =
-      sale.status === "paid"
-        ? "#10b981"
-        : sale.status === "draft"
-        ? "#6b7280"
-        : "#f59e0b";
+    // Estado de pago con icono dibujado
+    const paymentStatus = sale.paymentStatus || sale.status || "pending";
+
+    let statusText = "";
+    let statusColor = "#6b7280";
+    const statusX = 460; // Posición X para el texto
+    const iconY = clientY + 30; // Alineado verticalmente con el texto
+
+    if (paymentStatus === "paid") {
+      // Icono de check (✓) - PAGADA
+      statusText = "PAGADA";
+      statusColor = "#10b981";
+
+      // Dibujar check mark más grande y visible
+      doc.strokeColor(statusColor).lineWidth(2.5);
+      doc
+        .moveTo(statusX - 18, iconY + 1)
+        .lineTo(statusX - 14, iconY + 5)
+        .lineTo(statusX - 8, iconY - 3)
+        .stroke();
+    } else if (paymentStatus === "pending") {
+      // Icono de reloj - PENDIENTE
+      statusText = "PENDIENTE";
+      statusColor = "#f59e0b";
+
+      // Dibujar círculo del reloj
+      doc.strokeColor(statusColor).lineWidth(1.8);
+      doc.circle(statusX - 13, iconY + 1, 7).stroke();
+
+      // Dibujar manecillas del reloj
+      doc
+        .moveTo(statusX - 13, iconY + 1)
+        .lineTo(statusX - 13, iconY - 3)
+        .stroke();
+      doc
+        .moveTo(statusX - 13, iconY + 1)
+        .lineTo(statusX - 9, iconY + 1)
+        .stroke();
+    } else {
+      // Icono de círculo vacío - BORRADOR
+      statusText = "BORRADOR";
+      statusColor = "#6b7280";
+
+      // Dibujar círculo vacío
+      doc.strokeColor(statusColor).lineWidth(1.8);
+      doc.circle(statusX - 13, iconY + 1, 6).stroke();
+    }
+
     doc.fillColor(statusColor).fontSize(11).font("Helvetica-Bold");
-    doc.text(statusText, 400, clientY + 28, { align: "right", width: 140 });
+    doc.text(statusText, statusX, clientY + 28, { align: "left" });
 
     doc.fillColor("#000000");
     doc.moveDown(3);

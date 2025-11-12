@@ -29,12 +29,12 @@ INSERT INTO `suppliers` (`name`, `rfc`, `contact`, `phone`, `email`, `address`, 
 -- ============================================
 -- CLIENTES
 -- ============================================
-INSERT INTO `customers` (`name`, `email`, `phone`, `address`, `city`, `state`, `customerType`, `creditLimit`, `creditDays`, `isActive`) VALUES
-('Constructora del Valle S.A.', 'compras@constrvalle.com', '5555-1111', 'Av. Constructores 100', 'CDMX', 'Ciudad de México', 'business', 50000.00, 30, TRUE),
-('José Luis García', 'jlgarcia@email.com', '5555-2222', 'Calle Reforma 234', 'CDMX', 'Ciudad de México', 'individual', 5000.00, 0, TRUE),
-('Desarrollos Inmobiliarios GC', 'admon@desagc.com', '5555-3333', 'Paseo de la República 567', 'Zapopan', 'Jalisco', 'business', 100000.00, 45, TRUE),
-('María Fernanda Rodríguez', 'mfrodriguez@email.com', '5555-4444', 'Col. Centro 890', 'Puebla', 'Puebla', 'individual', 3000.00, 0, TRUE),
-('Mantenimiento y Servicios MX', 'contacto@mserviciosmx.com', '5555-5555', 'Zona Industrial 432', 'Toluca', 'Estado de México', 'business', 25000.00, 15, TRUE);
+INSERT INTO `customers` (`name`, `email`, `phone`, `address`, `city`, `state`, `customerType`, `isActive`) VALUES
+('Constructora del Valle S.A.', 'compras@constrvalle.com', '5555-1111', 'Av. Constructores 100', 'CDMX', 'Ciudad de México', 'business', TRUE),
+('José Luis García', 'jlgarcia@email.com', '5555-2222', 'Calle Reforma 234', 'CDMX', 'Ciudad de México', 'individual', TRUE),
+('Desarrollos Inmobiliarios GC', 'admon@desagc.com', '5555-3333', 'Paseo de la República 567', 'Zapopan', 'Jalisco', 'business', TRUE),
+('María Fernanda Rodríguez', 'mfrodriguez@email.com', '5555-4444', 'Col. Centro 890', 'Puebla', 'Puebla', 'individual', TRUE),
+('Mantenimiento y Servicios MX', 'contacto@mserviciosmx.com', '5555-5555', 'Zona Industrial 432', 'Toluca', 'Estado de México', 'business', TRUE);
 
 -- ============================================
 -- PRODUCTOS DE FERRETERÍA

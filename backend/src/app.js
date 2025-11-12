@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const { sequelize } = require("./modelos");
 const routes = require("./rutas");
 const {
@@ -21,6 +22,9 @@ app.use(
 // Middlewares de parseo
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Servir archivos estáticos (imágenes de productos)
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Logging de requests en desarrollo
 if (process.env.NODE_ENV === "development") {
