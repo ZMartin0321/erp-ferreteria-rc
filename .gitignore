@@ -43,9 +43,12 @@ tmp/
 temp/
 *.tmp
 
-# Uploads (opcional - descomentar si no quieres subir archivos de usuario)
-# backend/uploads/*
-# !backend/uploads/.gitkeep
+# Uploads (archivos subidos por usuarios)
+backend/uploads/*
+!backend/uploads/.gitkeep
+!backend/uploads/productos/
+backend/uploads/productos/*
+!backend/uploads/productos/.gitkeep
 
 # Coverage
 coverage/
