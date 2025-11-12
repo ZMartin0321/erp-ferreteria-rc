@@ -1,9 +1,12 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { sequelize } = require("./models");
-const routes = require("./routes");
-const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
+const { sequelize } = require("./modelos");
+const routes = require("./rutas");
+const {
+  errorHandler,
+  notFoundHandler,
+} = require("./intermediarios/manejadorErrores");
 
 const app = express();
 

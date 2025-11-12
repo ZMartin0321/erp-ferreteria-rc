@@ -1,105 +1,109 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import Dashboard from "./pages/Dashboard";
-import Products from "./pages/Products";
-import Sales from "./pages/Sales";
-import Purchases from "./pages/Purchases";
-import Suppliers from "./pages/Suppliers";
-import Categories from "./pages/Categories";
-import Customers from "./pages/Customers";
-import Quotations from "./pages/Quotations";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import NavBar from "./components/NavBar";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { ProveedorAuth } from "./contexto/ContextoAutenticacion";
+import PanelControl from "./paginas/PanelControl";
+import Productos from "./paginas/Productos";
+import Ventas from "./paginas/Ventas";
+import Compras from "./paginas/Compras";
+import Proveedores from "./paginas/Proveedores";
+import Categorias from "./paginas/Categorias";
+import Clientes from "./paginas/Clientes";
+import Cotizaciones from "./paginas/Cotizaciones";
+import InicioSesion from "./paginas/InicioSesion";
+import Registro from "./paginas/Registro";
+import BarraNavegacion from "./componentes/BarraNavegacion";
+import RutaProtegida from "./componentes/RutaProtegida";
 
 export default function App() {
   return (
-    <AuthProvider>
+    <ProveedorAuth>
       <div className="min-h-screen bg-gray-100">
-        <NavBar />
+        <BarraNavegacion />
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<InicioSesion />} />
+          <Route path="/register" element={<Registro />} />
           <Route
             path="/"
             element={
-              <ProtectedRoute>
+              <RutaProtegida>
                 <div className="container mx-auto p-4">
-                  <Dashboard />
+                  <PanelControl />
                 </div>
-              </ProtectedRoute>
+              </RutaProtegida>
             }
           />
           <Route
             path="/products"
             element={
-              <ProtectedRoute>
+              <RutaProtegida>
                 <div className="container mx-auto p-4">
-                  <Products />
+                  <Productos />
                 </div>
-              </ProtectedRoute>
+              </RutaProtegida>
             }
           />
           <Route
             path="/sales"
             element={
-              <ProtectedRoute>
+              <RutaProtegida>
                 <div className="container mx-auto p-4">
-                  <Sales />
+                  <Ventas />
                 </div>
-              </ProtectedRoute>
+              </RutaProtegida>
             }
           />
           <Route
             path="/purchases"
             element={
-              <ProtectedRoute>
+              <RutaProtegida>
                 <div className="container mx-auto p-4">
-                  <Purchases />
+                  <Compras />
                 </div>
-              </ProtectedRoute>
+              </RutaProtegida>
             }
           />
           <Route
             path="/suppliers"
             element={
-              <ProtectedRoute>
+              <RutaProtegida>
                 <div className="container mx-auto p-4">
-                  <Suppliers />
+                  <Proveedores />
                 </div>
-              </ProtectedRoute>
+              </RutaProtegida>
             }
           />
           <Route
             path="/categories"
             element={
-              <ProtectedRoute>
+              <RutaProtegida>
                 <div className="container mx-auto p-4">
-                  <Categories />
+                  <Categorias />
                 </div>
-              </ProtectedRoute>
+              </RutaProtegida>
             }
           />
           <Route
             path="/customers"
             element={
-              <ProtectedRoute>
-                <Customers />
-              </ProtectedRoute>
+              <RutaProtegida>
+                <div className="container mx-auto p-4">
+                  <Clientes />
+                </div>
+              </RutaProtegida>
             }
           />
           <Route
             path="/quotations"
             element={
-              <ProtectedRoute>
-                <Quotations />
-              </ProtectedRoute>
+              <RutaProtegida>
+                <div className="container mx-auto p-4">
+                  <Cotizaciones />
+                </div>
+              </RutaProtegida>
             }
           />
         </Routes>
       </div>
-    </AuthProvider>
+    </ProveedorAuth>
   );
 }
